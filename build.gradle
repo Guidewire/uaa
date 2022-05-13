@@ -112,6 +112,13 @@ subprojects {
                 reject '2.3.1'
             }
         }
+        implementation('org.owasp.esapi:esapi') {
+            because 'Security vulnerability'
+            version {
+                require '2.3.0.0'
+                reject '2.2.0.0'
+            }
+        }
     }
 
     [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:none", "-nowarn"]
