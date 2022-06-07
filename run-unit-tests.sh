@@ -35,6 +35,7 @@ if [[ -z "${DOCKER_IMAGE+x}" ]]; then
 fi
 
 docker run \
+  --rm \
   --shm-size=4G \
   --memory=6G \
   --volume "${SCRIPT_DIR}":"${CONTAINER_SCRIPT_DIR}" \
