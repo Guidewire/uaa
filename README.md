@@ -114,14 +114,8 @@ First run the UAA server as described above:
 From another terminal you can use curl to verify that UAA has started by
 requesting system information:
 
-    $ curl -H "Accept: application/json" localhost:8080/uaa/login
-    {
-      "timestamp":"2012-03-28T18:25:49+0100",
-      "commit_id":"111274e",
-      "prompts":{"username":["text","Username"],
-        "password":["password","Password"]
-      }
-    }
+    $ curl --silent --show-error --head localhost:8080/uaa/login | head -1
+    HTTP/1.1 200
 
 For complex requests it is more convenient to interact with UAA using
 `uaac`, the [UAA Command Line Client](https://github.com/cloudfoundry/cf-uaac).
@@ -144,14 +138,22 @@ To run the unit tests with docker:
 
 ### To run a single test
 
+The default uaa unit tests (`./gradlew test`) use hsqldb. 
+
 Start by finding out which gradle project your test belongs to.
 You can find all project by running
 
     $ ./gradlew projects
 
-Then you can run
-
+To run a specific test class, you can specify the module and the test class. 
+    
     $ ./gradlew :<project name>:test --tests <TestClass>.<MethodName>
+
+In this example, it's running only the 
+JdbcScimGroupMembershipManagerTests tests in the cloudfoundry-identity-server module:
+
+    $ ./gradlew :cloudfoundry-identity-server:test \
+    --tests "org.cloudfoundry.identity.uaa.scim.jdbc.JdbcScimGroupMembershipManagerTests"
 
 or to run all tests in a Class
 
@@ -223,7 +225,11 @@ Here are some ways for you to get involved in the community:
   [forks of this repository](https://github.com/cloudfoundry/uaa). If you
   want to contribute code this way, please reference an existing issue
   if there is one as well covering the specific issue you are
-  addressing.  Always submit pull requests to the "develop" branch.
+  addressing. Always submit pull requests to the "develop" branch.
   We strictly adhere to test driven development. We kindly ask that
   pull requests are accompanied with test cases that would be failing
   if ran separately from the pull request.
+* After you create the pull request, you can check the code metrics yourself  
+  in [Github Actions](https://github.com/cloudfoundry/uaa/actions) and on [Sonar](https://sonarcloud.io/project/pull_requests_list?id=cloudfoundry-identity-parent). 
+  The goal for new code should be close to 100% tested and clean code: 
+  [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cloudfoundry-identity-parent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cloudfoundry-identity-parent)
