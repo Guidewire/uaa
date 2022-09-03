@@ -30,8 +30,8 @@ buildscript {
     allprojects {
         configurations.all {
             resolutionStrategy {
-                force 'org.apache.commons:commons-collections4:4.3'
-                force 'xerces:xercesImpl:2.12.1'
+                force 'org.apache.commons:commons-collections4:4.4'
+                force 'xerces:xercesImpl:2.12.2'
             }
         }
     }
