@@ -8,6 +8,15 @@
     <description>CloudFoundry Identity Server</description>
 
     <filter>
+        <filter-name>rateLimitingFilter</filter-name>
+        <filter-class>org.cloudfoundry.identity.uaa.ratelimiting.RateLimitingFilter</filter-class>
+        <init-param>
+            <param-name>contextAttribute</param-name>
+            <param-value>org.springframework.web.servlet.FrameworkServlet.CONTEXT.spring</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
         <filter-name>springSessionRepositoryFilter</filter-name>
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
@@ -53,6 +62,11 @@
     </filter>
 
     <filter-mapping>
+        <filter-name>rateLimitingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
@@ -89,7 +103,7 @@
         </init-param>
         <init-param>
             <param-name>dispatchTraceRequest</param-name>
-            <param-value>true</param-value>
+            <param-value>false</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -107,6 +121,11 @@
     <error-page>
         <error-code>404</error-code>
         <location>/error404</location>
+    </error-page>
+
+    <error-page>
+        <error-code>429</error-code>
+        <location>/error429</location>
     </error-page>
 
     <error-page>

@@ -1,5 +1,6 @@
 package org.cloudfoundry.identity.uaa.authentication.manager;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.cloudfoundry.identity.uaa.authentication.ProviderConfigurationException;
 import org.cloudfoundry.identity.uaa.authentication.UaaAuthenticationDetails;
 import org.cloudfoundry.identity.uaa.authentication.UaaLoginHint;
@@ -8,9 +9,9 @@ import org.cloudfoundry.identity.uaa.constants.OriginKeys;
 import org.cloudfoundry.identity.uaa.impl.config.RestTemplateConfig;
 import org.cloudfoundry.identity.uaa.login.Prompt;
 import org.cloudfoundry.identity.uaa.oauth.client.ClientConstants;
+import org.cloudfoundry.identity.uaa.oauth.jwt.JwtClientAuthentication;
 import org.cloudfoundry.identity.uaa.provider.IdentityProvider;
 import org.cloudfoundry.identity.uaa.provider.IdentityProviderProvisioning;
-import org.cloudfoundry.identity.uaa.provider.JdbcIdentityProviderProvisioning;
 import org.cloudfoundry.identity.uaa.provider.OIDCIdentityProviderDefinition;
 import org.cloudfoundry.identity.uaa.provider.oauth.ExternalOAuthAuthenticationManager;
 import org.cloudfoundry.identity.uaa.provider.oauth.ExternalOAuthCodeToken;
@@ -128,8 +129,11 @@ public class PasswordGrantAuthenticationManager implements AuthenticationManager
         URL tokenUrl = config.getTokenUrl();
         String clientId = config.getRelyingPartyId();
         String clientSecret = config.getRelyingPartySecret();
-        if (clientId == null || clientSecret == null) {
-            throw new ProviderConfigurationException("External OpenID Connect provider configuration is missing relyingPartyId or relyingPartySecret.");
+        if (clientId == null) {
+            throw new ProviderConfigurationException("External OpenID Connect provider configuration is missing relyingPartyId.");
+        }
+        if (clientSecret == null && config.getJwtClientAuthentication() == null) {
+            throw new ProviderConfigurationException("External OpenID Connect provider configuration is missing relyingPartySecret or jwtclientAuthentication.");
         }
         String userName = authentication.getPrincipal() instanceof String ? (String)authentication.getPrincipal() : null;
         if (userName == null || authentication.getCredentials() == null || !(authentication.getCredentials() instanceof String)) {
@@ -146,19 +150,28 @@ public class PasswordGrantAuthenticationManager implements AuthenticationManager
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        String auth = clientId + ":" + clientSecret;
-        headers.add("Authorization","Basic "+Base64Utils.encodeToString(auth.getBytes()));
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+
+        if (clientSecret == null) {
+            params = new JwtClientAuthentication(externalOAuthAuthenticationManager.getKeyInfoService())
+                .getClientAuthenticationParameters(params, config);
+        } else {
+            String auth = clientId + ":" + clientSecret;
+            headers.add("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+        }
         if (config.isSetForwardHeader() && authentication.getDetails() != null &&authentication.getDetails() instanceof UaaAuthenticationDetails) {
             UaaAuthenticationDetails details = (UaaAuthenticationDetails) authentication.getDetails();
             if (details.getOrigin() != null) {
                 headers.add("X-Forwarded-For", details.getOrigin());
             }
         }
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", GRANT_TYPE_PASSWORD);
         params.add("response_type","id_token");
         params.add("username", userName);
         params.add("password", passProvider.get());
+        if (ObjectUtils.isNotEmpty(config.getScopes())) {
+            params.add("scope", String.join(" ", config.getScopes()));
+        }
 
         List<Prompt> prompts = config.getPrompts();
         List<String> promptsToInclude = new ArrayList<>();
