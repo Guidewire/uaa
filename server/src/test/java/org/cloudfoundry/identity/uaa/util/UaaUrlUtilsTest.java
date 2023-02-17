@@ -629,6 +629,33 @@ class UaaUrlUtilsTest {
         assertEquals(Strings.EMPTY_STRING, UaaUrlUtils.getRequestPath(mock(HttpServletRequest.class)));
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "/servlet, /pathInfo, /servlet/pathInfo",
+            "/servlet, , /servlet",
+            ",         /pathInfo, /pathInfo",
+            ",         ,          ''"
+
+    })
+    void getRequestPathCombinesServletPathAndPathInfo(
+            String servletPath, String pathInfo, String expected
+    ) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setServletPath(servletPath);
+        request.setPathInfo(pathInfo);
+
+        assertEquals(expected, UaaUrlUtils.getRequestPath(request));
+    }
+
+    @Test
+    void testLegacyUriWithPortWildCard() {
+        assertTrue(UaaUrlUtils.isValidRegisteredRedirectUrl("http://localhost:*/callback"));
+
+        assertFalse(UaaUrlUtils.isValidRegisteredRedirectUrl(Strings.EMPTY_STRING));
+        assertFalse(UaaUrlUtils.isValidRegisteredRedirectUrl("http://localhost:80*/callback"));
+        assertFalse(UaaUrlUtils.isValidRegisteredRedirectUrl("http://localhost:*8/callback"));
+    }
+
     private static void validateRedirectUri(List<String> urls, boolean result) {
         Map<String, String> failed = getUnsuccessfulUrls(urls, result);
         if (!failed.isEmpty()) {
