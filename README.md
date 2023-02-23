@@ -1,5 +1,9 @@
 <link href="https://raw.github.com/clownfart/Markdown-CSS/master/markdown.css" rel="stylesheet"></link>
 
+[![slack.cloudfoundry.org](https://slack.cloudfoundry.org/badge.svg)](https://cloudfoundry.slack.com/archives/C03FXANBV)
+
+> **_Warning_**: _MFA feature in UAA is currently deprecated and will be removed in a future UAA version._
+
 # CloudFoundry User Account and Authentication (UAA) Server
 
 The UAA is a multi tenant identity management service, used in Cloud Foundry, but also available
@@ -120,7 +124,102 @@ requesting system information:
 For complex requests it is more convenient to interact with UAA using
 `uaac`, the [UAA Command Line Client](https://github.com/cloudfoundry/cf-uaac).
 
-## Integration tests
+### Debugging local server
+
+To load JDWP agent for UAA jvm debugging, start the server as follows:
+```sh
+./gradlew run -Dxdebug=true
+```
+or
+```sh
+./gradlew -Dspring.profiles.active=default,hsqldb,debug run
+```
+You can then attach your debugger to port 5005 of the jvm process.
+
+To suspend the server start-up until the debugger is attached (useful for
+debugging start-up code), start the server as follows:
+```sh
+./gradlew run -Dxdebugs=true
+```
+or
+```sh
+./gradlew -Dspring.profiles.active=default,hsqldb,debugs run
+```
+
+## Running local UAA server with different databases
+`./gradlew run` runs the UAA server with hsqldb database by default.
+
+### MySql
+1. Start the mysql server (e.g. a mysql docker container)
+```sh
+% docker run --name mysql1 -e MYSQL_ROOT_PASSWORD=changeme -d -p3306:3306 mysql
+```
+2. Create the `uaa` database (e.g. in mysql interactive session)
+```sh
+% mysql -h 127.0.0.1 -u root -p
+...
+mysql> create database uaa;
+```
+3. Run the UAA server with the mysql profile
+```sh
+% ./gradlew -Dspring.profiles.active=mysql,default run
+```
+
+### PostgreSQL
+1. Start the postgresql server (e.g. a postgres docker container)
+```sh
+docker run --name postgres1 -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+```
+2. Create the `uaa` database (e.g. in psql interactive session)
+```sh
+% psql -h 127.0.0.1 -U postgres
+```
+```postgresql
+create database uaa;
+create user root with superuser password 'changeme';
+```
+3. Run the UAA server with the postgresql profile
+```sh
+% ./gradlew -Dspring.profiles.active=postgresql,default run
+```
+4. Once the UAA server started, you can see the tables created in the uaa database (e.g. in psql interactive session)
+```postgresql
+\c uaa
+psql (14.5 (Homebrew), server 15.0 (Debian 15.0-1.pgdg110+1))
+WARNING: psql major version 14, server major version 15.
+         Some psql features might not work.
+You are now connected to database "uaa" as user "postgres".
+\d
+List of relations
+ Schema |             Name              |   Type   | Owner
+--------+-------------------------------+----------+-------
+ public | authz_approvals               | table    | root
+ public | expiring_code_store           | table    | root
+ public | external_group_mapping        | table    | root
+ public | external_group_mapping_id_seq | sequence | root
+ public | group_membership              | table    | root
+ public | group_membership_id_seq       | sequence | root
+ public | groups                        | table    | root
+ public | identity_provider             | table    | root
+ public | identity_zone                 | table    | root
+ public | mfa_providers                 | table    | root
+ public | oauth_client_details          | table    | root
+ public | oauth_code                    | table    | root
+ public | oauth_code_id_seq             | sequence | root
+ public | revocable_tokens              | table    | root
+ public | schema_version                | table    | root
+ public | sec_audit                     | table    | root
+ public | sec_audit_id_seq              | sequence | root
+ public | service_provider              | table    | root
+ public | spring_session                | table    | root
+ public | spring_session_attributes     | table    | root
+ public | user_google_mfa_credentials   | table    | root
+ public | user_info                     | table    | root
+ public | users                         | table    | root
+(23 rows)
+```
+
+## Running tests
 
 You can run the integration tests with docker
 
@@ -218,6 +317,7 @@ Of course, you can always abandon the default values altogether and provide your
 
 Here are some ways for you to get involved in the community:
 
+* Join uaa channel on [![slack.cloudfoundry.org](https://slack.cloudfoundry.org/badge.svg)](https://cloudfoundry.slack.com/archives/C03FXANBV)
 * Create [github](https://github.com/cloudfoundry/uaa/issues) tickets for bugs and new features and comment and
   vote on the ones that you are interested in.
 * Github is for social coding: if you want to write code, we encourage
@@ -233,3 +333,20 @@ Here are some ways for you to get involved in the community:
   in [Github Actions](https://github.com/cloudfoundry/uaa/actions) and on [Sonar](https://sonarcloud.io/project/pull_requests_list?id=cloudfoundry-identity-parent). 
   The goal for new code should be close to 100% tested and clean code: 
   [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cloudfoundry-identity-parent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cloudfoundry-identity-parent)
+
+# Connecting UAA to local LDAP Server
+
+Requirements:
+* [Docker](https://docs.docker.com/engine/reference/commandline/cli/)
+* [Docker Compose](https://docs.docker.com/compose/reference/)
+
+To debug UAA and LDAP integrations, we use an OpenLdap docker image from [VMWare's Bitnami project](https://github.com/bitnami/bitnami-docker-openldap)
+
+1. Modify file `uaa/src/main/resources/uaa.yml` and enable LDAP by uncommenting line 7, `spring_profiles: ldap,default,hsqldb`
+1. run `docker-compose up` from directory `scripts/ldap`
+2. From `scripts/ldap` verify connectivity to running OpenLdap container by running `docker-confirm-ldapquery.sh`
+3. Start UAA with `./gradlew run`
+4. Navigate to [`/uaa`](http://localhost:8080/uaa) and log in with LDAP user `user01` and password `password1`
+
+Use below command to clean-up container and volume:
+- `docker-compose down --volumes`
