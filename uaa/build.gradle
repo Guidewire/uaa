@@ -152,8 +152,8 @@ integrationTest {
     filter {
         includeTestsMatching("org.cloudfoundry.identity.uaa.integration.*")
         includeTestsMatching("*IT")
-        minHeapSize = "512m"
-        maxHeapSize = "2048m"
+        minHeapSize = "1024m"
+        maxHeapSize = "4096m"
     }
 }
 
