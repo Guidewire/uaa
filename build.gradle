@@ -15,8 +15,8 @@ buildscript {
         maven {
             url artifactoryReleasesUrl
             credentials {
-                username project.hasProperty('artifactoryUsername') ? project.artifactoryUsername : System.getenv('ARTIFACTORY_USERNAME')
-                password project.hasProperty('artifactoryPassword') ? project.artifactoryPassword : System.getenv('ARTIFACTORY_PASSWORD')
+                username System.getenv('ARTIFACTORY_USERNAME')
+                password System.getenv('ARTIFACTORY_PASSWORD')
             }
         }
     }
