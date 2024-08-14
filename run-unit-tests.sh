@@ -55,5 +55,7 @@ docker run \
   --volume "${SCRIPT_DIR}":"${CONTAINER_SCRIPT_DIR}" \
   --volume "${GRADLE_LOCK_DIR}" \
   --env DB="${DB}" \
+  --env ARTIFACTORY_USERNAME="$ARTIFACTORY_USERNAME" \
+  --env ARTIFACTORY_PASSWORD="$ARTIFACTORY_PASSWORD" \
   "${DOCKER_IMAGE}" \
   /root/uaa/scripts/unit-tests.sh "${PROFILE_NAME},default" "${CONTAINER_SCRIPT_DIR}"
