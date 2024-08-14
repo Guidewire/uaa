@@ -104,6 +104,8 @@ test {
     exclude("**/*IT.class")
     exclude("**/*Docs.class")
     systemProperty("mock.suite.test", "true")
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
 }
 
 task populateVersionfile {
@@ -151,6 +153,8 @@ integrationTest {
         includeTestsMatching("org.cloudfoundry.identity.uaa.integration.*")
         includeTestsMatching("*IT")
     }
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
 }
 
 task checkmarxDependencies(type: Copy) {
