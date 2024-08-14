@@ -12,6 +12,13 @@ buildscript {
         maven {
             url("https://plugins.gradle.org/m2/")
         }
+        maven {
+            url artifactoryReleasesUrl
+            credentials {
+                username project.hasProperty('artifactoryUsername') ? project.artifactoryUsername : System.getenv('ARTIFACTORY_USERNAME')
+                password project.hasProperty('artifactoryPassword') ? project.artifactoryPassword : System.getenv('ARTIFACTORY_PASSWORD')
+            }
+        }
     }
 
     dependencies {
