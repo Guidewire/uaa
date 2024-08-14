@@ -18,6 +18,7 @@ buildscript {
                 username System.getenv('ARTIFACTORY_USERNAME')
                 password System.getenv('ARTIFACTORY_PASSWORD')
             }
+        }
     }
 
     dependencies {
