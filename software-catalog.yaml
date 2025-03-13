@@ -1,0 +1,24 @@
+ServiceId: AID-PL-keti-uaa
+CheckmarxProjectName: 'sausalito-keti-uaa'
+ServiceName: keti-uaa
+Description: 'UAA serves as an IdP'
+ServiceStatus: Active
+ExternalBusinessName: 'None'
+RepoUrl: 'https://github.com/Guidewire/uaa.git'
+JiraProjectKey: KETI
+CIUrl: 'https://gwre-devexp-ci-production-devci.gwre-devops.net/project/CloudCommonServices_Auth_UaaIdp'
+DepartmentCode: 275
+ApplicationOwner: Sausalito
+PodOwner: sausalito
+BusinessOwner: 'Anoop Gopalakrishnan'
+Type: 'Scripts'
+ProductFamily: gwcp
+ReleaseCadence: continuously
+AppInCloudOrSelfManaged: Cloud
+Exposure: internal
+GwreApplicationsDependentOn: 'None'
+BusinessRisk: Low
+SecurityRisk: Medium
+EmergencyContact: 'https://guidewire.pagerduty.com/teams/PCIDEEK'
+SlackChannelName: 'keti-users'
+ServiceLifecycleStatus: Production
